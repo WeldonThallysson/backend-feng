@@ -10,7 +10,6 @@ export class ItemService {
     private itemRepository: Repository<Item>,
   ) {}
 
-  // Criar um novo item
   async create(item: Item): Promise<Item> {
     const data = {
       ...item,
@@ -19,11 +18,10 @@ export class ItemService {
     return this.itemRepository.save(data);
   }
 
-  // Buscar todos os itens
   async findAll(): Promise<Item[]> {
     return this.itemRepository.find();
   }
-  // Buscar um item pelo ID
+
   async findOne(id: number): Promise<Item> {
     const item = await this.itemRepository.findOne({
         where: {
@@ -48,7 +46,6 @@ export class ItemService {
     return this.itemRepository.save(item); 
   }
 
-  // Excluir um item
   async remove(id: number): Promise<void> {
     const item = await this.findOne(id); 
     await this.itemRepository.remove(item); 

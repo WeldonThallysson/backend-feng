@@ -3,7 +3,7 @@ import { ItemService } from './item.service';
 import { Item } from './item.entity';
 import { AuthGuard } from '@nestjs/passport';
 
-@UseGuards(AuthGuard('jwt')) // 🔒 Protege todas as rotas do controller
+@UseGuards(AuthGuard('jwt')) 
 @Controller('itens')
 export class ItemController {
   constructor(private readonly itemService: ItemService) {}

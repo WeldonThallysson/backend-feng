@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Pedido } from './pedido.entity';
 import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
+import { parse, format } from 'date-fns';
+import {  toZonedTime } from 'date-fns-tz';
 
+const fusoHorarioBrasilia = 'America/Sao_Paulo'; 
+interface PedidoResponse extends Omit<Pedido, 'data'> {
+  data: string;
+}
 @Injectable()
 export class PedidoService {
   constructor(
@@ -16,43 +22,55 @@ export class PedidoService {
     private itemRepository: Repository<Item>,
   ) {}
 
-  // Buscar todos os pedidos com filtros
   async findAll(
-    startDate?: Date,
-    endDate?: Date,
-    value?: number,  // Agora, será apenas o valor
+    startDate?: string,
+    endDate?: string,
+    value?: number,
     clienteName?: string,
   ): Promise<Pedido[]> {
-    const queryBuilder = this.pedidoRepository.createQueryBuilder('pedido')
-      .leftJoinAndSelect('pedido.cliente', 'cliente')  // Join com cliente
-      .leftJoinAndSelect('pedido.itens', 'item');  // Join com itens
-
-    // Filtro por Data de Início
+    const queryBuilder = this.pedidoRepository
+      .createQueryBuilder('pedido')
+      .leftJoinAndSelect('pedido.cliente', 'cliente')
+      .leftJoinAndSelect('pedido.itens', 'item');
+  
     if (startDate) {
-      queryBuilder.andWhere('pedido.data >= :startDate', { startDate });
+      const start = toZonedTime(new Date(startDate), fusoHorarioBrasilia);
+      if (isNaN(start.getTime())) {
+        throw new BadRequestException(`Data de início não é válida: ${startDate}`);
+      }
+      queryBuilder.andWhere('pedido.data >= :startDate', {
+        startDate: format(start, 'yyyy-MM-dd HH:mm:ss'),
+      });
     }
-
-    // Filtro por Data de Fim
+  
     if (endDate) {
-      queryBuilder.andWhere('pedido.data <= :endDate', { endDate });
+      const end = toZonedTime(new Date(endDate), fusoHorarioBrasilia);
+      if (isNaN(end.getTime())) {
+        throw new BadRequestException(`Data final não é válida: ${endDate}`);
+      }
+      queryBuilder.andWhere('pedido.data <= :endDate', {
+        endDate: format(end, 'yyyy-MM-dd HH:mm:ss'),
+      });
     }
-
-    // Filtro por Valor Unitário do Item
-    if (value !== undefined) {
+  
+    if (value) {
       queryBuilder.andWhere('item.valor_unitario = :value', { value });
     }
-
-    // Filtro por Nome do Cliente
+  
     if (clienteName) {
       queryBuilder.andWhere('cliente.nome LIKE :clienteName', {
         clienteName: `%${clienteName}%`,
       });
     }
-
-    return await queryBuilder.getMany();
+  
+    const response = await queryBuilder.getMany();
+  
+    return response.map((item) => ({
+      ...item,
+      data: format(toZonedTime(item.data, fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm'),
+    })) as Pedido[];
   }
-
-  // Buscar um pedido por ID
+  
   async findOne(id: number): Promise<Pedido> {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
@@ -66,44 +84,83 @@ export class PedidoService {
     return pedido;
   }
 
-  // Criar um novo pedido
-  async create(data: { client_id: number, itens_id: number[], data: Date }): Promise<Pedido> {
-    const { client_id, itens_id, data: pedidoData } = data;
+  async create(data: { client_id: number, itens_id: number[]}): Promise<Pedido> {
+    const { client_id, itens_id } = data;
+    const dataCurrent = format(toZonedTime(new Date(), fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm');
 
-    // Buscar o cliente pelo id (com a correção no parâmetro)
     const cliente = await this.clienteRepository.findOne({
-      where: { id: client_id },  // Use 'where' para especificar a condição
+      where: { id: client_id }, 
     });
 
     if (!cliente) {
       throw new NotFoundException(`Cliente com id ${client_id} não encontrado`);
     }
 
-    // Buscar os itens pelo id
-    const itens = await this.itemRepository.findByIds(itens_id);
-    if (!itens || itens.length === 0) {
-      throw new NotFoundException(`Itens não encontrados`);
-    }
+    const itens = await this.itemRepository.findBy({
+      id: In(itens_id),
+    });
 
-    // Criar o pedido
+ 
     const pedido = this.pedidoRepository.create({
-      data: pedidoData,
+      data: dataCurrent,
       cliente,
       itens,
     });
-
+    
     return await this.pedidoRepository.save(pedido);
   }
 
 
-  async update(id: number, pedidoData: Partial<Pedido>): Promise<Pedido> {
-    const pedido = await this.findOne(id);  
-    Object.assign(pedido, pedidoData);  
-    return this.pedidoRepository.save(pedido);  
-  }
+async update(id: number, pedidoData: Partial<{
+    client_id: number,
+    itens_id: number[]
+  
+  }>,  userLogged: Cliente): Promise<Pedido> {
+    const pedido = await this.findOne(id);
+  
+    const dataCurrent = format(toZonedTime(new Date(), fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm');
+    
+    if (pedidoData.client_id && pedidoData.client_id !== pedido.cliente.id) {
+      if (!userLogged.isAdmin) {
+        throw new ForbiddenException('Você não tem permissão para alterar o cliente desde pedido.');
+      }
+    }
+  
+    if (pedidoData.client_id) {
+      const cliente = await this.clienteRepository.findOne({
+        where:{
+          id: pedidoData.client_id
+        }
+      });
+      if (!cliente) {
+        throw new NotFoundException(`Cliente com id ${pedidoData.client_id} não encontrado`);
+      }
+      pedido.cliente = cliente;
+    }
+  
+    if (pedidoData.itens_id && pedidoData.itens_id.length > 0) {
+      const itens = await this.itemRepository.findBy({ id: In(pedidoData.itens_id) });
+      if (!itens || itens.length === 0) {
+        throw new NotFoundException(`Itens não encontrados`);
+      }
+      pedido.itens = itens;
+    }
+  
+    const dataUpdated = {
+        ...pedido,
+        data: dataCurrent
+    }
+ 
+    Object.assign(pedido, pedidoData);
+  
+    return this.pedidoRepository.save(dataUpdated);
+   }
+ 
 
   async remove(id: number): Promise<void> {
     const pedido = await this.findOne(id);  
+
+ 
     await this.pedidoRepository.remove(pedido);
   }
 }

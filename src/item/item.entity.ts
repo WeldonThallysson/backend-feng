@@ -15,7 +15,6 @@ export class Item {
   @Column('decimal', { precision: 10, scale: 2 })
   valor_unitario: number;
 
-  // Relacionamento ManyToOne com Pedido (um pedido tem vários itens)
-  @ManyToOne(() => Pedido, (pedido) => pedido.itens)
+  @ManyToOne(() => Pedido, (pedido) => pedido.itens, { onDelete: 'CASCADE' })
   pedido: Pedido;
 }

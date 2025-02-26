@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards, Put, Request } from '@nestjs/common';
 import { PedidoService } from './pedido.service';
-import { Pedido } from './pedido.entity';
+import { Pedido } from './pedido.entity'; 
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt')) 
@@ -8,36 +8,40 @@ import { AuthGuard } from '@nestjs/passport';
 export class PedidoController {
   constructor(private readonly pedidoService: PedidoService) {}
 
-  // Buscar todos os pedidos com filtros
   @Get()
   async findAll(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('value') value?: number,  // Agora apenas o valor
+    @Query('value') value?: number,
     @Query('clienteName') clienteName?: string,
   ): Promise<Pedido[]> {
-    // Convertendo as strings de data para objetos Date
-    const start = startDate ? new Date(startDate) : undefined;
-    const end = endDate ? new Date(endDate) : undefined;
 
-    return this.pedidoService.findAll(start, end, value, clienteName);
+    const start = startDate ? startDate : undefined;
+    const end = endDate ? endDate : undefined;
+ 
+    return this.pedidoService.findAll(start, end, Number(value), clienteName);
   }
 
-  // Criar um novo pedido
   @Post()
   async create(
-    @Body() body: { client_id: number, itens_id: number[], data: Date },
+    @Body() body: { client_id: number, itens_id: number[]},
   ): Promise<Pedido> {
     return this.pedidoService.create(body);
   }
 
-  // Buscar um pedido por ID
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Pedido> {
     return this.pedidoService.findOne(id);
   }
-
-  // Excluir um pedido
+  @Put(':id')
+  update(
+    @Param('id') id: number, 
+    @Body() pedidoData: Partial<{ client_id: number, itens_id: number[] }>, 
+    @Request() req: any
+  ) {
+    return this.pedidoService.update(id, pedidoData, req.user); 
+  }
+  
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<void> {
     return this.pedidoService.remove(id);

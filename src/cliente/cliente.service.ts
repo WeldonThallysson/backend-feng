@@ -56,7 +56,6 @@ export class ClienteService {
   }
 
 
-
   async update(id: number, itemData: Partial<Cliente>): Promise<Cliente> {
     const item = await this.cliente.findOne({
       where: { id },
@@ -91,8 +90,11 @@ export class ClienteService {
     };
 
     Object.assign(item as Cliente, dataUpdate);
+    
     return this.cliente.save(dataUpdate);
   }
+
+  
   async remove(id: number): Promise<void> {
     const item = await this.findOne(id);
     await this.cliente.remove(item);

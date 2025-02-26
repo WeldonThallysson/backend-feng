@@ -23,7 +23,6 @@ export class Cliente {
   @Column({ default: false})
   isAdmin: boolean 
 
-  // Relacionamento OneToMany com a entidade Pedido
   @OneToMany(() => Pedido, (pedido) => pedido.cliente)
   pedidos: Pedido[];
 }
