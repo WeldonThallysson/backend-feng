@@ -15,7 +15,6 @@ export class AuthService {
 
     async validadeUser(email: string, password: string): Promise<any> {
         const cliente = await this.clienteRepository.findOne({ where: { email}});
-        console.log(cliente)
         if(cliente && await bcrypt.compare(password, cliente.senha)){
             const {senha, ...result} = cliente;
             return result
@@ -28,6 +27,7 @@ export class AuthService {
         const user = await this.validadeUser(email, password);
         const payload = { sub: user.id, email: user.email};
         return {
+            id: user.id,
             access_token: this.jwtService.sign(payload)
         }
     }

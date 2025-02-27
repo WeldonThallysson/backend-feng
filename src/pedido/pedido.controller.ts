@@ -15,12 +15,17 @@ export class PedidoController {
     @Query('endDate') endDate?: string,
     @Query('value') value?: number,
     @Query('clienteName') clienteName?: string,
+    @Request() req?: {
+      user: {
+      userId: number,
+      email: string
+    }} // Captura o usuário logado
   ): Promise<Pedido[]> {
 
     const start = startDate ? startDate : undefined;
     const end = endDate ? endDate : undefined;
- 
-    return this.pedidoService.findAll(start, end, Number(value), clienteName);
+    console.log(req?.user)
+    return this.pedidoService.findAll(req?.user?.userId,start, end, Number(value), clienteName);
   }
 
   @Post()

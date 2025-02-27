@@ -23,16 +23,25 @@ export class PedidoService {
     private itemRepository: Repository<Item>,
   ) {}
 
-  async findAll(
-    startDate?: string,
-    endDate?: string,
-    value?: number,
-    clienteName?: string,
-  ): Promise<Pedido[]> {
+  async findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]> {
+    console.log(idUserLogged)
+
+    const userLogged =  await this.clienteRepository.findOne({
+      where: { id: idUserLogged },
+    });
+  
+    if (!userLogged) {
+      throw new NotFoundException(`Usuário com id ${idUserLogged} não encontrado.`);
+    }
+
     const queryBuilder = this.pedidoRepository
       .createQueryBuilder('pedido')
       .leftJoinAndSelect('pedido.cliente', 'cliente')
       .leftJoinAndSelect('pedido.itens', 'item');
+  
+    if (userLogged.isAdmin === false) { 
+      queryBuilder.andWhere('cliente.id = :clientId', { clientId: userLogged.id });
+    }
   
     if (startDate) {
       const start = toZonedTime(new Date(startDate), fusoHorarioBrasilia);
@@ -64,12 +73,7 @@ export class PedidoService {
       });
     }
   
-    const response = await queryBuilder.getMany();
-  
-    return response.map((item) => ({
-      ...item,
-      data: format(toZonedTime(item.data, fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm'),
-    })) as Pedido[];
+    return await queryBuilder.getMany();
   }
   
   async findOne(id: number): Promise<Pedido> {
@@ -85,31 +89,31 @@ export class PedidoService {
     return pedido;
   }
 
-  async create(data: { client_id: number, itens_id: number[]}): Promise<IResponseMessage> {
+  async create(data: { client_id: number, itens_id: number[] }): Promise<IResponseMessage> {
     const { client_id, itens_id } = data;
     const dataCurrent = format(toZonedTime(new Date(), fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm');
-
-    const cliente = await this.clienteRepository.findOne({
-      where: { id: client_id }, 
-    });
-
+  
+    const cliente = await this.clienteRepository.findOne({ where: { id: client_id } });
+  
     if (!cliente) {
       throw new NotFoundException(`Cliente com id ${client_id} não encontrado`);
     }
-
-    const itens = await this.itemRepository.findBy({
-      id: In(itens_id),
-    });
-
- 
+  
+    const itens = await this.itemRepository.findBy({ id: In(itens_id) });
+  
+    if (itens.length !== itens_id.length) {
+      throw new NotFoundException('Um ou mais itens não foram encontrados');
+    }
+  
     const pedido = this.pedidoRepository.create({
       data: dataCurrent,
       cliente,
       itens,
     });
-    
-     await this.pedidoRepository.save(pedido);
-     return { message: 'Pedido cadastrado com sucesso!' } 
+  
+    await this.pedidoRepository.save(pedido);
+  
+    return { message: 'Pedido cadastrado com sucesso!' };
   }
 
 
@@ -158,13 +162,21 @@ async update(id: number, pedidoData: Partial<{
     await this.pedidoRepository.save(dataUpdated);
     return { message: 'Pedido atualizado com sucesso!' } 
    }
- 
 
-  async remove(id: number): Promise<IResponseMessage> {
-    const pedido = await this.findOne(id);  
 
- 
+   async remove(id: number): Promise<IResponseMessage> {
+    const pedido = await this.findOne(id);
+  
+    if (!pedido) {
+      throw new NotFoundException('Pedido não encontrado');
+    }
+  
+    pedido.itens = [];
+    await this.pedidoRepository.save(pedido);
+  
     await this.pedidoRepository.remove(pedido);
-    return { message: 'Pedido deletado com sucesso!' } 
+  
+    return { message: 'Pedido deletado com sucesso!' };
   }
+  
 }

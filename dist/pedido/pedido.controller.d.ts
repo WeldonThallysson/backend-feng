@@ -4,7 +4,12 @@ import { IResponseMessage } from 'src/interfaces/interface.response';
 export declare class PedidoController {
     private readonly pedidoService;
     constructor(pedidoService: PedidoService);
-    findAll(startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]>;
+    findAll(startDate?: string, endDate?: string, value?: number, clienteName?: string, req?: {
+        user: {
+            userId: number;
+            email: string;
+        };
+    }): Promise<Pedido[]>;
     create(body: {
         client_id: number;
         itens_id: number[];

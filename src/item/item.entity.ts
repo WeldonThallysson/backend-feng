@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Pedido } from '../pedido/pedido.entity'; // Importando Pedido, pois um item pertence a um pedido
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Pedido } from '../pedido/pedido.entity';
 
 @Entity()
 export class Item {
@@ -15,6 +15,6 @@ export class Item {
   @Column('decimal', { precision: 10, scale: 2 })
   valor_unitario: number;
 
-  @ManyToOne(() => Pedido, (pedido) => pedido.itens, { onDelete: 'CASCADE' })
-  pedido: Pedido;
+  @ManyToMany(() => Pedido, (pedido) => pedido.itens)
+  pedido: Pedido[];
 }

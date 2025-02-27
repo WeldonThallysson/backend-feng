@@ -34,7 +34,8 @@ __decorate([
     __metadata("design:type", cliente_entity_1.Cliente)
 ], Pedido.prototype, "cliente", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => item_entity_1.Item, (item) => item.pedido),
+    (0, typeorm_1.ManyToMany)(() => item_entity_1.Item, (item) => item.pedido),
+    (0, typeorm_1.JoinTable)(),
     __metadata("design:type", Array)
 ], Pedido.prototype, "itens", void 0);
 exports.Pedido = Pedido = __decorate([

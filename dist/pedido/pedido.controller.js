@@ -21,10 +21,11 @@ let PedidoController = class PedidoController {
     constructor(pedidoService) {
         this.pedidoService = pedidoService;
     }
-    async findAll(startDate, endDate, value, clienteName) {
+    async findAll(startDate, endDate, value, clienteName, req) {
         const start = startDate ? startDate : undefined;
         const end = endDate ? endDate : undefined;
-        return this.pedidoService.findAll(start, end, Number(value), clienteName);
+        console.log(req?.user);
+        return this.pedidoService.findAll(req?.user?.userId, start, end, Number(value), clienteName);
     }
     async create(body) {
         return this.pedidoService.create(body);
@@ -46,8 +47,9 @@ __decorate([
     __param(1, (0, common_1.Query)('endDate')),
     __param(2, (0, common_1.Query)('value')),
     __param(3, (0, common_1.Query)('clienteName')),
+    __param(4, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number, String]),
+    __metadata("design:paramtypes", [String, String, Number, String, Object]),
     __metadata("design:returntype", Promise)
 ], PedidoController.prototype, "findAll", null);
 __decorate([

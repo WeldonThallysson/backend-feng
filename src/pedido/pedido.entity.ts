@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
 
@@ -13,7 +13,9 @@ export class Pedido {
   @ManyToOne(() => Cliente, (cliente) => cliente.pedidos)
   @JoinColumn({ name: 'client_id' })
   cliente: Cliente;
-
-  @OneToMany(() => Item, (item) => item.pedido)
+  
+  
+  @ManyToMany(() => Item, (item) => item.pedido)
+  @JoinTable()
   itens: Item[];
 }

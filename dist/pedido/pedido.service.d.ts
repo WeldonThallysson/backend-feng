@@ -8,7 +8,7 @@ export declare class PedidoService {
     private clienteRepository;
     private itemRepository;
     constructor(pedidoRepository: Repository<Pedido>, clienteRepository: Repository<Cliente>, itemRepository: Repository<Item>);
-    findAll(startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]>;
+    findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]>;
     findOne(id: number): Promise<Pedido>;
     create(data: {
         client_id: number;

@@ -4,5 +4,5 @@ export declare class Item {
     nome: string;
     descricao: string;
     valor_unitario: number;
-    pedido: Pedido;
+    pedido: Pedido[];
 }

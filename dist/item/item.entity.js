@@ -37,8 +37,8 @@ __decorate([
     __metadata("design:type", Number)
 ], Item.prototype, "valor_unitario", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => pedido_entity_1.Pedido, (pedido) => pedido.itens, { onDelete: 'CASCADE' }),
-    __metadata("design:type", pedido_entity_1.Pedido)
+    (0, typeorm_1.ManyToMany)(() => pedido_entity_1.Pedido, (pedido) => pedido.itens),
+    __metadata("design:type", Array)
 ], Item.prototype, "pedido", void 0);
 exports.Item = Item = __decorate([
     (0, typeorm_1.Entity)()
