@@ -14,6 +14,8 @@ bootstrap();
 
 export default async function handler(req: VercelRequest, res:VercelResponse) {
   const app = await NestFactory.create(AppModule);
+  app.enableCors()
+
   await app.init();
   app.getHttpAdapter().getInstance()(req, res);
 }

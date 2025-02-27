@@ -13,6 +13,7 @@ async function bootstrap() {
 bootstrap();
 async function handler(req, res) {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.enableCors();
     await app.init();
     app.getHttpAdapter().getInstance()(req, res);
 }
