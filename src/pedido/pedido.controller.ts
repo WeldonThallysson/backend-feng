@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards, Put, Requ
 import { PedidoService } from './pedido.service';
 import { Pedido } from './pedido.entity'; 
 import { AuthGuard } from '@nestjs/passport';
+import { IResponseMessage } from 'src/interfaces/interface.response';
 
 @UseGuards(AuthGuard('jwt')) 
 @Controller('pedidos')
@@ -25,7 +26,7 @@ export class PedidoController {
   @Post()
   async create(
     @Body() body: { client_id: number, itens_id: number[]},
-  ): Promise<Pedido> {
+  ): Promise<IResponseMessage> {
     return this.pedidoService.create(body);
   }
 
@@ -43,7 +44,7 @@ export class PedidoController {
   }
   
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id') id: number): Promise<IResponseMessage> {
     return this.pedidoService.remove(id);
   }
 }

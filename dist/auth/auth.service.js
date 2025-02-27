@@ -26,19 +26,19 @@ let AuthService = class AuthService {
         this.clienteRepository = clienteRepository;
         this.jwtService = jwtService;
     }
-    async validadeUser(email, senha) {
+    async validadeUser(email, password) {
         const cliente = await this.clienteRepository.findOne({ where: { email } });
         console.log(cliente);
-        if (cliente && await bcrypt.compare(senha, cliente.senha)) {
+        if (cliente && await bcrypt.compare(password, cliente.senha)) {
             const { senha, ...result } = cliente;
             return result;
         }
         else {
-            throw new common_1.UnauthorizedException("Email ou senha inválidos");
+            throw new common_1.UnauthorizedException("Email ou password inválidos");
         }
     }
-    async login(email, senha) {
-        const user = await this.validadeUser(email, senha);
+    async login(email, password) {
+        const user = await this.validadeUser(email, password);
         const payload = { sub: user.id, email: user.email };
         return {
             access_token: this.jwtService.sign(payload)

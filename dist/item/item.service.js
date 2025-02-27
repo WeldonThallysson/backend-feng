@@ -27,7 +27,8 @@ let ItemService = class ItemService {
             ...item,
             valor_unitario: Number(item.valor_unitario)
         };
-        return this.itemRepository.save(data);
+        await this.itemRepository.save(data);
+        return { message: 'Item cadastrado com sucesso!' };
     }
     async findAll() {
         return this.itemRepository.find();
@@ -50,11 +51,13 @@ let ItemService = class ItemService {
             valor_unitario: Number(itemData.valor_unitario)
         };
         Object.assign(item, data);
-        return this.itemRepository.save(item);
+        await this.itemRepository.save(item);
+        return { message: 'Item atualizado com sucesso!' };
     }
     async remove(id) {
         const item = await this.findOne(id);
         await this.itemRepository.remove(item);
+        return { message: 'Item deletado com sucesso!' };
     }
 };
 exports.ItemService = ItemService;

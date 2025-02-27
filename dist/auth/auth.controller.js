@@ -21,7 +21,7 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     async login(body) {
-        return this.authService.login(body.email, body.senha);
+        return this.authService.login(body.email, body.password);
     }
 };
 exports.AuthController = AuthController;

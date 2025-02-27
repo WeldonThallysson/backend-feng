@@ -95,7 +95,8 @@ let PedidoService = class PedidoService {
             cliente,
             itens,
         });
-        return await this.pedidoRepository.save(pedido);
+        await this.pedidoRepository.save(pedido);
+        return { message: 'Pedido cadastrado com sucesso!' };
     }
     async update(id, pedidoData, userLogged) {
         const pedido = await this.findOne(id);
@@ -128,11 +129,13 @@ let PedidoService = class PedidoService {
             data: dataCurrent
         };
         Object.assign(pedido, pedidoData);
-        return this.pedidoRepository.save(dataUpdated);
+        await this.pedidoRepository.save(dataUpdated);
+        return { message: 'Pedido atualizado com sucesso!' };
     }
     async remove(id) {
         const pedido = await this.findOne(id);
         await this.pedidoRepository.remove(pedido);
+        return { message: 'Pedido deletado com sucesso!' };
     }
 };
 exports.PedidoService = PedidoService;

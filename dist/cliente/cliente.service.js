@@ -40,10 +40,21 @@ let ClienteService = class ClienteService {
             telefone: item.telefone,
             senha: await bcrypt.hash(item.senha, 10),
         };
-        return this.cliente.save(data);
+        await this.cliente.save(data);
+        return { message: 'Usuário cadastrado com sucesso!' };
     }
     async findAll() {
-        return this.cliente.find();
+        const response = await this.cliente.find();
+        return response.map((item) => {
+            return {
+                id: item.id,
+                nome: item.nome,
+                email: item.email,
+                telefone: item.telefone,
+                isAdmin: item.isAdmin,
+                pedidos: item.pedidos,
+            };
+        });
     }
     async findOne(id) {
         const item = await this.cliente.findOne({
@@ -83,11 +94,13 @@ let ClienteService = class ClienteService {
             isAdmin: itemData.isAdmin
         };
         Object.assign(item, dataUpdate);
-        return this.cliente.save(dataUpdate);
+        await this.cliente.save(dataUpdate);
+        return { message: 'Usuário atualizado com sucesso!' };
     }
     async remove(id) {
         const item = await this.findOne(id);
         await this.cliente.remove(item);
+        return { message: 'Usuário deletado com sucesso!' };
     }
 };
 exports.ClienteService = ClienteService;

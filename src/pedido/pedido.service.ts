@@ -6,6 +6,7 @@ import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
 import { parse, format } from 'date-fns';
 import {  toZonedTime } from 'date-fns-tz';
+import { IResponseMessage } from 'src/interfaces/interface.response';
 
 const fusoHorarioBrasilia = 'America/Sao_Paulo'; 
 interface PedidoResponse extends Omit<Pedido, 'data'> {
@@ -84,7 +85,7 @@ export class PedidoService {
     return pedido;
   }
 
-  async create(data: { client_id: number, itens_id: number[]}): Promise<Pedido> {
+  async create(data: { client_id: number, itens_id: number[]}): Promise<IResponseMessage> {
     const { client_id, itens_id } = data;
     const dataCurrent = format(toZonedTime(new Date(), fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm');
 
@@ -107,7 +108,8 @@ export class PedidoService {
       itens,
     });
     
-    return await this.pedidoRepository.save(pedido);
+     await this.pedidoRepository.save(pedido);
+     return { message: 'Pedido cadastrado com sucesso!' } 
   }
 
 
@@ -115,7 +117,7 @@ async update(id: number, pedidoData: Partial<{
     client_id: number,
     itens_id: number[]
   
-  }>,  userLogged: Cliente): Promise<Pedido> {
+  }>,  userLogged: Cliente): Promise<IResponseMessage> {
     const pedido = await this.findOne(id);
   
     const dataCurrent = format(toZonedTime(new Date(), fusoHorarioBrasilia), 'yyyy-MM-dd HH:mm');
@@ -153,14 +155,16 @@ async update(id: number, pedidoData: Partial<{
  
     Object.assign(pedido, pedidoData);
   
-    return this.pedidoRepository.save(dataUpdated);
+    await this.pedidoRepository.save(dataUpdated);
+    return { message: 'Pedido atualizado com sucesso!' } 
    }
  
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<IResponseMessage> {
     const pedido = await this.findOne(id);  
 
  
     await this.pedidoRepository.remove(pedido);
+    return { message: 'Pedido deletado com sucesso!' } 
   }
 }

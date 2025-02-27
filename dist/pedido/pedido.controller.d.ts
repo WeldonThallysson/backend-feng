@@ -1,5 +1,6 @@
 import { PedidoService } from './pedido.service';
 import { Pedido } from './pedido.entity';
+import { IResponseMessage } from 'src/interfaces/interface.response';
 export declare class PedidoController {
     private readonly pedidoService;
     constructor(pedidoService: PedidoService);
@@ -7,11 +8,11 @@ export declare class PedidoController {
     create(body: {
         client_id: number;
         itens_id: number[];
-    }): Promise<Pedido>;
+    }): Promise<IResponseMessage>;
     findOne(id: number): Promise<Pedido>;
     update(id: number, pedidoData: Partial<{
         client_id: number;
         itens_id: number[];
-    }>, req: any): Promise<Pedido>;
-    remove(id: number): Promise<void>;
+    }>, req: any): Promise<IResponseMessage>;
+    remove(id: number): Promise<IResponseMessage>;
 }

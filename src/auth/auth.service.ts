@@ -13,19 +13,19 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    async validadeUser(email: string, senha: string): Promise<any> {
+    async validadeUser(email: string, password: string): Promise<any> {
         const cliente = await this.clienteRepository.findOne({ where: { email}});
         console.log(cliente)
-        if(cliente && await bcrypt.compare(senha, cliente.senha)){
+        if(cliente && await bcrypt.compare(password, cliente.senha)){
             const {senha, ...result} = cliente;
             return result
         } else{
-            throw new UnauthorizedException("Email ou senha inválidos")
+            throw new UnauthorizedException("Email ou password inválidos")
         }
     }
 
-    async login(email:string, senha: string) {
-        const user = await this.validadeUser(email,senha);
+    async login(email:string, password: string) {
+        const user = await this.validadeUser(email, password);
         const payload = { sub: user.id, email: user.email};
         return {
             access_token: this.jwtService.sign(payload)

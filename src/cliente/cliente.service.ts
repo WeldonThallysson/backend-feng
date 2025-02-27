@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { ValidationUtils } from 'src/utils/validations.utils';
+import { IResponseMessage } from 'src/interfaces/interface.response';
+import { IResponseGetAllClientes } from 'src/interfaces/interface.clientes';
+
 
 @Injectable()
 export class ClienteService {
@@ -12,7 +15,7 @@ export class ClienteService {
     private cliente: Repository<Cliente>,
   ) {}
 
-  async create(item: Cliente): Promise<Cliente> {
+  async create(item: Cliente): Promise<IResponseMessage> {
     if (!ValidationUtils.isValidEmail(item.email)) {
       throw new BadRequestException('Email inválido');
     }
@@ -33,12 +36,26 @@ export class ClienteService {
       telefone: item.telefone,
       senha: await bcrypt.hash(item.senha, 10),
     };
+   await this.cliente.save(data);
 
-    return this.cliente.save(data);
+   return { message: 'Usuário cadastrado com sucesso!' } 
   }
 
-  async findAll(): Promise<Cliente[]> {
-    return this.cliente.find();
+  async findAll(): Promise<IResponseGetAllClientes[]> {
+    const response = await this.cliente.find();
+
+  
+    return response.map((item) => {
+      return {
+        id: item.id,
+        nome: item.nome,
+        email: item.email,
+        telefone: item.telefone,
+        isAdmin: item.isAdmin,
+        pedidos: item.pedidos,
+      
+      }
+    })
   }
 
   async findOne(id: number): Promise<Cliente> {
@@ -56,7 +73,7 @@ export class ClienteService {
   }
 
 
-  async update(id: number, itemData: Partial<Cliente>): Promise<Cliente> {
+  async update(id: number, itemData: Partial<Cliente>): Promise<IResponseMessage> {
     const item = await this.cliente.findOne({
       where: { id },
     });
@@ -91,13 +108,18 @@ export class ClienteService {
 
     Object.assign(item as Cliente, dataUpdate);
     
-    return this.cliente.save(dataUpdate);
+     await  this.cliente.save(dataUpdate);
+   return { message: 'Usuário atualizado com sucesso!' } 
+   
   }
 
   
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<IResponseMessage> {
     const item = await this.findOne(id);
     await this.cliente.remove(item);
+    
+    return { message: 'Usuário deletado com sucesso!' } 
+    
   }
 
 

@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Pedido } from './pedido.entity';
 import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
+import { IResponseMessage } from 'src/interfaces/interface.response';
 export declare class PedidoService {
     private pedidoRepository;
     private clienteRepository;
@@ -12,10 +13,10 @@ export declare class PedidoService {
     create(data: {
         client_id: number;
         itens_id: number[];
-    }): Promise<Pedido>;
+    }): Promise<IResponseMessage>;
     update(id: number, pedidoData: Partial<{
         client_id: number;
         itens_id: number[];
-    }>, userLogged: Cliente): Promise<Pedido>;
-    remove(id: number): Promise<void>;
+    }>, userLogged: Cliente): Promise<IResponseMessage>;
+    remove(id: number): Promise<IResponseMessage>;
 }
