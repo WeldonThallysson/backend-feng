@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { Pedido } from './pedido.entity';
 import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
@@ -23,7 +23,7 @@ export class PedidoService {
     private itemRepository: Repository<Item>,
   ) {}
 
-  async findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]> {
+  async findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, search?: string): Promise<Pedido[]> {
     console.log(idUserLogged)
 
     const userLogged =  await this.clienteRepository.findOne({
@@ -67,11 +67,15 @@ export class PedidoService {
       queryBuilder.andWhere('item.valor_unitario = :value', { value });
     }
   
-    if (clienteName) {
-      queryBuilder.andWhere('cliente.nome LIKE :clienteName', {
-        clienteName: `%${clienteName}%`,
-      });
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
+            .orWhere('item.nome LIKE :search', { search: `%${search}%` });
+        })
+      );
     }
+  
   
     return await queryBuilder.getMany();
   }

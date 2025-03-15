@@ -14,7 +14,9 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.register({
       secret: "MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAdygNkrnOqyk58nYD2SYlGakyPgUa",
       signOptions: {expiresIn: '1h'},
-    })
+    }),
+  
+    
   ],
   providers: [AuthService,JwtStrategy],
   controllers: [AuthController],

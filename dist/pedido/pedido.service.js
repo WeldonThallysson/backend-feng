@@ -31,7 +31,7 @@ let PedidoService = class PedidoService {
         this.clienteRepository = clienteRepository;
         this.itemRepository = itemRepository;
     }
-    async findAll(idUserLogged, startDate, endDate, value, clienteName) {
+    async findAll(idUserLogged, startDate, endDate, value, search) {
         console.log(idUserLogged);
         const userLogged = await this.clienteRepository.findOne({
             where: { id: idUserLogged },
@@ -67,10 +67,11 @@ let PedidoService = class PedidoService {
         if (value) {
             queryBuilder.andWhere('item.valor_unitario = :value', { value });
         }
-        if (clienteName) {
-            queryBuilder.andWhere('cliente.nome LIKE :clienteName', {
-                clienteName: `%${clienteName}%`,
-            });
+        if (search) {
+            queryBuilder.andWhere(new typeorm_2.Brackets((qb) => {
+                qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
+                    .orWhere('item.nome LIKE :search', { search: `%${search}%` });
+            }));
         }
         return await queryBuilder.getMany();
     }
