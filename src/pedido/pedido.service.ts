@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Pedido } from './pedido.entity';
 import { Cliente } from 'src/cliente/cliente.entity';
 import { Item } from 'src/item/item.entity';
@@ -68,14 +68,14 @@ export class PedidoService {
     }
   
     if (search) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
-            .orWhere('item.nome LIKE :search', { search: `%${search}%` });
-        })
-      );
+      queryBuilder.andWhere('cliente.nome LIKE :clienteName', {
+        clienteName: `%${search}%`,
+      });
     }
-  
+    
+    if (search) {
+      queryBuilder.andWhere('item.nome LIKE :search', { search: `%${search}%` });
+    }
   
     return await queryBuilder.getMany();
   }
