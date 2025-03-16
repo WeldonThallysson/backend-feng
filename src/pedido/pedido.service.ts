@@ -66,16 +66,17 @@ export class PedidoService {
     if (value) {
       queryBuilder.andWhere('item.valor_unitario = :value', { value });
     }
-  
+
     if (search) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
-            .orWhere('item.nome LIKE :search', { search: `%${search}%` });
-        })
-      );
+      queryBuilder
+        .innerJoin('pedido.itens', 'itemFiltro') 
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
+              .orWhere('itemFiltro.nome LIKE :search', { search: `%${search}%` });
+          })
+        );
     }
-    
   
     return await queryBuilder.getMany();
   }
