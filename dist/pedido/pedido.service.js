@@ -68,12 +68,10 @@ let PedidoService = class PedidoService {
             queryBuilder.andWhere('item.valor_unitario = :value', { value });
         }
         if (search) {
-            queryBuilder.andWhere('cliente.nome LIKE :clienteName', {
-                clienteName: `%${search}%`,
-            });
-        }
-        if (search) {
-            queryBuilder.andWhere('item.nome LIKE :search', { search: `%${search}%` });
+            queryBuilder.andWhere(new typeorm_2.Brackets((qb) => {
+                qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
+                    .orWhere('item.nome LIKE :search', { search: `%${search}%` });
+            }));
         }
         return await queryBuilder.getMany();
     }
