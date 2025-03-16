@@ -23,9 +23,8 @@ export class PedidoService {
     private itemRepository: Repository<Item>,
   ) {}
 
-  async findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, search?: string): Promise<Pedido[]> {
-    console.log(idUserLogged)
-
+  async findAll(idUserLogged?: number, startDate?: string, endDate?: string, value?: number, clienteName?: string): Promise<Pedido[]> {
+ 
     const userLogged =  await this.clienteRepository.findOne({
       where: { id: idUserLogged },
     });
@@ -67,13 +66,13 @@ export class PedidoService {
       queryBuilder.andWhere('item.valor_unitario = :value', { value });
     }
 
-    if (search) {
+    if (clienteName) {
       queryBuilder
         .innerJoin('pedido.itens', 'itemFiltro') 
         .andWhere(
           new Brackets((qb) => {
-            qb.where('cliente.nome LIKE :search', { search: `%${search}%` })
-              .orWhere('itemFiltro.nome LIKE :search', { search: `%${search}%` });
+            qb.where('cliente.nome LIKE :search', { search: `%${clienteName}%` })
+              .orWhere('itemFiltro.nome LIKE :search', { search: `%${clienteName}%` });
           })
         );
     }
